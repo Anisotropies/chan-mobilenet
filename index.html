@@ -1,0 +1,49 @@
+<html>
+  <head>
+    <!-- Load the latest version of TensorFlow.js -->
+    <script src="https://unpkg.com/@tensorflow/tfjs"></script>
+    <script src="https://unpkg.com/@tensorflow-models/mobilenet@2.0.2"></script>
+    <script src="https://unpkg.com/@tensorflow-models/knn-classifier"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+    
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="style.css"/>
+  </head>
+  <body>
+    <h3> IMAGE CLASSIFICATION via MOBILENET </h3>
+    <!-- file upload 
+    http://davidstutz.de/bootstrap-file-upload/
+    -->
+    <!--https://stackoverflow.com/questions/18036315/centering-bootstrap-input-fields
+https://stackoverflow.com/questions/166221/how-can-i-upload-files-asynchronously
+-->
+<!-- Learn about this code on MDN: https://developer.mozilla.org/en-US/docs/Web/API/File/Using_files_from_web_applications -->
+
+    <!--https://stackoverflow.com/questions/22150006/align-two-divs-horizontally-side-by-side-center-to-the-page-using-bootstrap-css-->
+    <div class="container">
+      <div class="row">
+          <div class="col-sm-6">
+            <h5>Classification Pre-Transfer Learning</h5>
+              <input type="file" id="fileElem" multiple accept="image/*" style="display:none" onchange="handleFiles(this.files)">
+              <a href="#" id="fileSelect">Select a file</a> 
+              <div id="fileList">
+                <p>No files selected!</p>
+              </div>
+              <div id = "prediction" class = "content"></div>
+           </div>
+           <div class="col-sm-6">
+             <h5>Classification Post-Transfer Learning</h5>
+            <div id = "trainingImg">         
+            
+             </div>
+             <button id="Dog">Dog</button>
+             <button id="Not-Dog">Not a Dog</button>
+             <div id = "console">           
+             </div>
+           </div>
+      </div>
+    </div>
+    <!-- Load index.js after the content of the page -->
+    <script src="index.js"></script>
+  </body>
+</html>
