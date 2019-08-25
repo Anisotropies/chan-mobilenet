@@ -7,6 +7,10 @@
 
 window.URL = window.URL || window.webkitURL;
 
+const listFiles = ["https://cdn.glitch.com/64b69703-45a7-424d-9acb-5a4f7f75a9ef%2FIMG_2824.jpg?v=1565931709951",
+                   "https://cdn.glitch.com/64b69703-45a7-424d-9acb-5a4f7f75a9ef%2FIMG_2873.jpg?v=1566178175594"];
+let imgIndex = 0;
+
 const fileSelect = document.getElementById("fileSelect"),
     fileElem = document.getElementById("fileElem"),
     fileList = document.getElementById("fileList");
@@ -57,14 +61,41 @@ async function app() {
   console.log(result[0]);
   document.getElementById("prediction").innerHTML = "<p>" + "<b>Classification: </b>" + JSON.stringify(result[0].className) + "</p>"+
     "<p>" + "<b>Probability: </b>" + JSON.stringify(result[0].probability) + "</p>";;
-  appTransfer();
+  appTransfer(imgEl);
 }
 
 //transfer learning
 
-let net1;
+//DISPLAY NEW IMAGE TO TRAIN ON
+const displayNewImage = index =>{
+  
+      console.log("index "+index);
+      const imgT = document.createElement("img");
+      imgT.id = "imgT";
+      imgT.crossOrigin = "anonymous";
+      imgT.src = listFiles[index];
+      imgT.height = 300;
+      imgT.width = 300;
+      imgT.onload = function() {
+        window.URL.revokeObjectURL(this.src);
+      }
+  //https://www.w3schools.com/jsref/met_node_appendchild.asp
+  //https://www.w3schools.com/jsref/met_node_removechild.asp
+      const list = document.getElementById('trainingImg');
+      list.removeChild(list.childNodes[0]);    
+      list.appendChild(imgT);
+  return imgT;
+}
 
-async function appTransfer() {
+
+
+//display first image
+displayNewImage(imgIndex);
+
+
+let net1;
+//transfer learning
+async function appTransfer(imgEl) {
   console.log('Loading mobilenet..');
 
   // Load the model.
@@ -78,52 +109,43 @@ async function appTransfer() {
     //Cross origin: https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_enabled_image
     //https://stackoverflow.com/questions/30945945/tainted-canvases-may-not-be-loaded-cross-domain-issue-with-webgl-textures
     //tensorflow needs to know width and height of image: https://github.com/tensorflow/tfjs/issues/322
-    const imgT = document.createElement("img");
-      imgT.id = "imgT";
-      imgT.crossOrigin = "anonymous";
-      imgT.src = "https://cdn.glitch.com/64b69703-45a7-424d-9acb-5a4f7f75a9ef%2FIMG_2824.jpg?v=1565931709951";
-      imgT.height = 300;
-      imgT.width = 300;
-      imgT.onload = function() {
-        window.URL.revokeObjectURL(this.src);
-      }
+    console.log("listFiles.length "+listFiles.length);
+
+    if(imgIndex<listFiles.length-1)
+    {
+      imgIndex++;
+    }
+    const imgT = displayNewImage(imgIndex);
     
     // to the KNN classifier.
     const activation = net1.infer(imgT, 'conv_preds');
 
     // Pass the intermediate activation to the classifier.
     classifier.addExample(activation, classId);
-    //document.getElementById('trainingImg').appendChild(imgT);
+
+    //refresh prediction
+    predictNew();
   };
 
-  addExample(0);
+  // When clicking a button, add an example for that class.
+  document.getElementById("class-dog").addEventListener('click', () => addExample(0));
+  document.getElementById("class-notDog").addEventListener('click', () => addExample(1));
 
+  //diplay new prediction after each click
+  async function predictNew() {
+    console.log("classifier.getNumClasses()   "+classifier.getNumClasses()) ;
+    if (classifier.getNumClasses() > 0) {      
 
-
-    if (classifier.getNumClasses() > 0) {
-      // Get the activation from mobilenet from the webcam.
-      const imgG = document.createElement("img");
-      imgG.id = "imgG";
-      imgG.crossOrigin = "anonymous";
-      imgG.src = "https://cdn.glitch.com/64b69703-45a7-424d-9acb-5a4f7f75a9ef%2FIMG_2824.jpg?v=1565931709951";
-      imgG.height = 300;
-      imgG.width = 300;
-      imgG.onload = function() {
-        window.URL.revokeObjectURL(this.src);
-      }
-      
-      document.getElementById('console')
-      
-      
-      const activation2 = net1.infer(imgG, 'conv_preds');
+      const activation2 = net1.infer(imgEl, 'conv_preds');
       // Get the most likely class and confidences from the classifier module.
       const result = await classifier.predictClass(activation2);
 
       const classes = ['Dog', 'B', 'C'];
       //https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals
-      document.getElementById('console').innerHTML = `
-        <p><b>Classification:</b> ${classes[result.classIndex]}</p>
-       <p> <b>Probability:</b> ${result.confidences[result.classIndex]}</p>
+      document.getElementById('newPrediction').innerHTML = `
+        <p><b>New Classification:</b> ${classes[result.classIndex]}</p>
+        <p><b>New Probability:</b> ${result.confidences[result.classIndex]}</p>
       `;
     };
+  }
 }
